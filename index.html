@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gửi đến Em 💖</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #ffccdd, #ffe6f0);
+      color: white;
+    }
+
+    #heart-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 1;
+      background: black;
+    }
+
+    #main-content {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 320px;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      background-color: rgba(255, 0, 100, 0.6);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255, 0, 100, 0.8);
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      z-index: 10;
+    }
+
+    #main-content.visible {
+      opacity: 1;
+    }
+
+    #main-content h1 {
+      margin-bottom: 12px;
+      font-size: 2em;
+      text-shadow: 0 0 8px #ff4da6;
+    }
+
+    #main-content p {
+      font-size: 1.2em;
+      margin-bottom: 18px;
+      text-shadow: 0 0 5px #ff4da6;
+    }
+
+    .girlfriend-img {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 20px rgba(255, 0, 100, 0.7);
+      margin-bottom: 15px;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    #secret-message {
+      font-size: 1.3em;
+      margin-top: 10px;
+      color: #fff;
+      text-shadow: 0 0 6px #ff4da6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nhạc nền -->
+  <audio id="bg-music" loop>
+    <source src="static/nhac_nen.mp3" type="audio/mpeg" />
+    Trình duyệt của bạn không hỗ trợ nhạc nền.
+  </audio>
+
+  <canvas id="heart-canvas"></canvas>
+
+  <div id="main-content">
+    <h1>💖 Gửi đến Em 💖</h1>
+    <p>Em là người đặc biệt nhất trong trái tim anh. Cảm ơn em vì đã đến bên anh!</p>
+
+    <img src="static/girl1.jpg" alt="Em yêu của anh 💖" class="girlfriend-img" id="girlfriend-img">
+
+    <div id="secret-message"></div>
+  </div>
+
+<script>
+  // Canvas trái tim
+  const canvas = document.getElementById('heart-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let W, H;
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function inHeart(x, y) {
+    let nx = (x - W / 2) / 100;
+    let ny = -(y - H / 2) / 100;
+    return (nx * nx + ny * ny - 1) ** 3 - nx * nx * ny * ny * ny <= 0;
+  }
+
+  const particles = [];
+  const totalParticles = 1000;
+
+  for (let i = 0; i < totalParticles; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      size: Math.random() * 2 + 1,
+      target: null,
+      speed: 0.07 + Math.random() * 0.06,
+      color: `rgba(255,0,100,${0.5 + Math.random() * 0.5})`
+    });
+  }
+
+  const heartPositions = [];
+  while (heartPositions.length < totalParticles) {
+    let x = Math.random() * W;
+    let y = Math.random() * H;
+    if (inHeart(x, y)) {
+      heartPositions.push({ x, y });
+    }
+  }
+
+  for (let i = 0; i < totalParticles; i++) {
+    particles[i].target = heartPositions[i];
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+
+    particles.forEach(p => {
+      p.x += (p.target.x - p.x) * p.speed;
+      p.y += (p.target.y - p.y) * p.speed;
+
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Danh sách hình và thông điệp
+  const images = [
+    { src: "static/hinh1.jpg", message: "🌟 Em là tia nắng đầu tiên mỗi sáng!" },
+    { src: "static/hinh2.jpg", message: "🌸 Mỗi khoảnh khắc bên em đều đáng trân trọng." },
+    { src: "static/hinh3.jpg", message: "❤️ Em là người khiến trái tim anh rung động." },
+    { src: "static/hinh4.jpg", message: "💖 Cảm ơn em vì luôn ở đó vì anh." },
+    { src: "static/hinh5.jpg", message: "🌹 Em vẫn luôn là mặt trời bé nhỏ của anh." }
+  ];
+  let currentIndex = 0;
+
+  function updateImage() {
+    const img = document.getElementById('girlfriend-img');
+    const msg = document.getElementById('secret-message');
+    img.src = images[currentIndex].src;
+    msg.textContent = images[currentIndex].message;
+  }
+
+  function nextImage() {
+    currentIndex = (currentIndex + 1) % images.length;
+    updateImage();
+  }
+
+  const imgElement = document.getElementById('girlfriend-img');
+
+  imgElement.addEventListener('click', nextImage);
+  imgElement.addEventListener('touchend', nextImage);
+
+  // Hiển thị nội dung sau 3 giây
+  setTimeout(() => {
+    document.getElementById('main-content').classList.add('visible');
+    updateImage();
+  }, 3000);
+
+  // ✅ Phát nhạc sau lần tương tác đầu tiên
+  function tryPlayMusic() {
+    const music = document.getElementById('bg-music');
+    if (music.paused) {
+      music.play().catch((e) => {
+        console.log("Tự động phát nhạc bị chặn:", e);
+      });
+    }
+  }
+
+  document.addEventListener('click', tryPlayMusic, { once: true });
+  document.addEventListener('touchstart', tryPlayMusic, { once: true });
+</script>
+
+</body>
+</html>
